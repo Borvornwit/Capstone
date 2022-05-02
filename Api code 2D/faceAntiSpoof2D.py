@@ -13,15 +13,18 @@ class faceAntiSpoof2D:
         self.modelFile = modelFile
         self._faceDetectorAndAlignment = faceDetectorAndAlignment(os.path.dirname(os.path.realpath(__file__))
                                                            + '/faceDetetorAndAlignment/models/faceDetectorV2.onnx', processScale=0.20)
-        self.threshold = 0.8
+        self.threshold = 0.7
 
     def detect(self, image):
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         while image.shape[0] < 500 or image.shape[1] < 500:
             image = cv2.resize(image, (0,0), fx = 2, fy = 2)
 
         croppedImage = self.cropImage(image)
+
+        if croppedImage.shape[0] == 0 or croppedImage.shape[1] == 0:
+            return False
 
         predict = self.estimate(croppedImage)
 
