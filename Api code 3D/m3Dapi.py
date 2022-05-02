@@ -37,7 +37,9 @@ class FAS3D:
         self.region_num_bg = 4
         self.frame_count = 0
 
-        self.reset_mst()
+        # self.reset_mst()
+        self.mstmap_whole_face = dict()
+        self.mstmap_whole_bg = dict()
         return
 
     def classifyVid(self,video,face_landmark,bg_landmark): #Receive Video as input
@@ -48,27 +50,29 @@ class FAS3D:
         # result = self.model(final_mstmap_face, final_mstmap_bg)
         return final_mstmap_face, final_mstmap_bg
     
-    def classifySeq(self,frame,face_landmark,bg_landmark,frame_count):
+    def classifySeq(self,frame,face_landmark,bg_landmark,frame_count,cam_id):
+        if cam_id not in self.mstmap_whole_face:
+            self.reset_mst(cam_id)
         if frame_count==0:
             self.frame_count = 0
-            self.reset_mst()
+            self.reset_mst(cam_id)
         face_contours = get_face_contours(face_landmark)
         bg_contours = get_bg_contours(*bg_landmark)
         if frame_count>299:
-            self.mstmap_whole_face = np.roll(self.mstmap_whole_face, (0, -1), axis=(0, 1))
-            self.mstmap_whole_bg = np.roll(self.mstmap_whole_bg, (0, -1), axis=(0, 1))
-        self.mstmap_whole_face = generateSignalMap(self.mstmap_whole_face,frame,min(frame_count,299),face_contours)
-        self.mstmap_whole_bg = generateSignalMap(self.mstmap_whole_bg,frame,min(frame_count,299),bg_contours)
+            self.mstmap_whole_face[cam_id] = np.roll(self.mstmap_whole_face[cam_id], (0, -1), axis=(0, 1))
+            self.mstmap_whole_bg[cam_id] = np.roll(self.mstmap_whole_bg[cam_id], (0, -1), axis=(0, 1))
+        self.mstmap_whole_face[cam_id] = generateSignalMap(self.mstmap_whole_face[cam_id],frame,min(frame_count,299),face_contours)
+        self.mstmap_whole_bg[cam_id] = generateSignalMap(self.mstmap_whole_bg[cam_id],frame,min(frame_count,299),bg_contours)
         if frame_count >= 299:
             ### Normalise MSTmap
-            final_mstmap_face = norm_mst(self.mstmap_whole_face,self.color_channel)
-            final_mstmap_bg = norm_mst(self.mstmap_whole_bg,self.color_channel)
+            final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
+            final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
             ### classify Target
             # result = self.model(final_mstmap_face,final_mstmap_bg)
             return final_mstmap_face, final_mstmap_bg
         return None, None
 
-    def reset_mst(self):
-        self.mstmap_whole_face = np.zeros((2**self.region_num_face-1,self.time_frame,self.color_channel))
-        self.mstmap_whole_bg = np.zeros((2**self.region_num_bg-1,self.time_frame,self.color_channel))
+    def reset_mst(self,cam_id):
+        self.mstmap_whole_face[cam_id] = np.zeros((2**self.region_num_face-1,self.time_frame,self.color_channel))
+        self.mstmap_whole_bg[cam_id] = np.zeros((2**self.region_num_bg-1,self.time_frame,self.color_channel))
         return
