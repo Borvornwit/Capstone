@@ -32,20 +32,21 @@ with col1:
 with col2:
     FRAME_WINDOW = st.image([])
 
-def updateResult(result_2d, result_3d):
+def updateResult():
     result_2d_str = "Live" if result_2d else "Spoof"
     result_3d_str = "Live" if result_3d else "Spoof"
 
     with placeholder.container():
         col1, col2, col3 = st.columns(3)
-        col2.metric("2D", result_2d_str)
+        col2.metric("2D", result_2d_str, str(score_2d))
         col3.metric("3D", result_3d_str)
 
 def predict2d(frame):
-    global result_2d
-    result_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
+    global result_2d, score_2d
+    result_2d, score_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
 result_2d = False
+score_2d = 0.0
 result_3d = False
 thread_2d = threading.Thread(target=predict2d)
 
@@ -57,7 +58,7 @@ while genre == "Webcam" and camera.isOpened():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         FRAME_WINDOW.image(frame)
 
-        updateResult(result_2d, result_3d)
+        updateResult()
 
         alignedImage = _faceAntiSpoof2D.cropImage(frame)
 
@@ -76,7 +77,7 @@ while genre == "Video" and video.isOpened():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         FRAME_WINDOW.image(frame)
 
-        updateResult(result_2d, result_3d)
+        updateResult()
 
         alignedImage = _faceAntiSpoof2D.cropImage(frame)
 

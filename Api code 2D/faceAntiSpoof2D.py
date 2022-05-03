@@ -13,7 +13,7 @@ class faceAntiSpoof2D:
         self.modelFile = modelFile
         self._faceDetectorAndAlignment = faceDetectorAndAlignment(os.path.dirname(os.path.realpath(__file__))
                                                            + '/faceDetetorAndAlignment/models/faceDetectorV2.onnx', processScale=0.20)
-        self.threshold = 0.75
+        self.threshold = 0.8
 
     def detect(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -25,9 +25,9 @@ class faceAntiSpoof2D:
 
         predict = self.estimate(croppedImage)
 
-        score = predict[0][0]
+        score = predict[0][0][0]
         #print(score)
-        return score >= self.threshold
+        return score >= self.threshold, score
 
     def detectAfterPreprocess(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -37,9 +37,9 @@ class faceAntiSpoof2D:
 
         predict = self.estimate(image)
 
-        score = predict[0][0]
+        score = predict[0][0][0]
         #print(score)
-        return score >= self.threshold
+        return score >= self.threshold, score
 
     def cropImage(self, image):
         while image.shape[0] < 500 or image.shape[1] < 500:
