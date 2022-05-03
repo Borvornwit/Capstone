@@ -6,8 +6,10 @@ import threading
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 2D')
 from faceAntiSpoof2D import faceAntiSpoof2D
+#from faceAntiSpoof2D_old import faceAntiSpoof2D_old
 
 _faceAntiSpoof2D = faceAntiSpoof2D(modelFile = 'Api code 2D/model/best')
+#_faceAntiSpoof2D = faceAntiSpoof2D_old(modelFile = 'Api code 2D/model/old')
 
 st.title("Face-Anti spoofing - DEMO")
 
