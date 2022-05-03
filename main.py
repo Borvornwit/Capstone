@@ -43,7 +43,7 @@ def updateResult(result_2d, result_3d):
 
 def predict2d(frame):
     global result_2d
-    result_2d = _faceAntiSpoof2D.detect(frame)
+    result_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
 result_2d = False
 result_3d = False
@@ -59,8 +59,10 @@ while genre == "Webcam" and camera.isOpened():
 
         updateResult(result_2d, result_3d)
 
+        alignedImage = _faceAntiSpoof2D.cropImage(frame)
+
         if not thread_2d.is_alive():
-            thread_2d = threading.Thread(target=predict2d, args=(frame,))
+            thread_2d = threading.Thread(target=predict2d, args=(alignedImage,))
             thread_2d.start()
     else:
         break
@@ -74,10 +76,12 @@ while genre == "Video" and video.isOpened():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         FRAME_WINDOW.image(frame)
 
-        updateResult(True, True)
+        updateResult(result_2d, result_3d)
+
+        alignedImage = _faceAntiSpoof2D.cropImage(frame)
 
         if not thread_2d.is_alive():
-            thread_2d = threading.Thread(target=predict2d, args=(frame,))
+            thread_2d = threading.Thread(target=predict2d, args=(alignedImage,))
             thread_2d.start()
     else:
         break
