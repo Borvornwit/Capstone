@@ -52,17 +52,16 @@ class FAS3D:
         ## create MSTmap from video and face landmark
         final_mstmap_face, final_mstmap_bg = MSTmap_generator(video,face_landmark,bg_landmark)
         ## classify Target
-        # result = self.model(final_mstmap_face,final_mstmap_bg)
-        # predict = np.argmax(result)
-        # if predict == 0:
-        #     return 'attack'
-        # else:
-        #     return 'real'
+        result = self.model(final_mstmap_face,final_mstmap_bg)
+        predict = np.argmax(result)
+        if predict == 0:
+            return 'attack'
+        else:
+            return 'real'
         # result = self.model(final_mstmap_face, final_mstmap_bg)
-        return final_mstmap_face, final_mstmap_bg
+        # return final_mstmap_face, final_mstmap_bg
     
     def classifySeq(self,frame,face_landmark,bg_landmark,frame_count,cam_id):
-        # bg_landmark = facebox + [w,h]
         if cam_id not in self.mstmap_whole_face:
             self.reset_mst(cam_id)
         if frame_count==0:
@@ -80,24 +79,16 @@ class FAS3D:
             final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
             final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
             ### classify Target
-            # result = self.model(final_mstmap_face,final_mstmap_bg)
-            # predict = np.argmax(result)
-            # if predict == 0:
-            #     return 'attack'
-            # else:
-            #     return 'real'
-            return final_mstmap_face, final_mstmap_bg
+            result = self.model(final_mstmap_face,final_mstmap_bg)
+            predict = np.argmax(result)
+            if predict == 0:
+                return 'attack'
+            else:
+                return 'real'
+            # return final_mstmap_face, final_mstmap_bg
         return None
 
     def reset_mst(self,cam_id):
         self.mstmap_whole_face[cam_id] = np.zeros((2**self.region_num_face-1,self.time_frame,self.color_channel))
         self.mstmap_whole_bg[cam_id] = np.zeros((2**self.region_num_bg-1,self.time_frame,self.color_channel))
         return
-
-    def predict(final_mstmap_face,final_mstmap_bg):
-        result = self.model(final_mstmap_face,final_mstmap_bg)
-        predict = np.argmax(result)
-        if predict == 0:
-            return 'attack'
-        else:
-            return 'real'
