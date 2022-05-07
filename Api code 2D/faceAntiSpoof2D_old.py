@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os
-from tensorflow.keras.optimizers import Adam
 from depthEstimationModel_2d_old import DepthEstimationModel_old
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/faceDetetorAndAlignment")
@@ -59,8 +58,7 @@ class faceAntiSpoof2D_old:
         finalImage = croppedImage.reshape(1, croppedImage.shape[0], croppedImage.shape[1], 3)
 
         model = DepthEstimationModel_old()
-        opt = Adam(learning_rate=0.01)
-        model.compile(optimizer=opt)
+        model.compile()
         model.load_weights(self.modelFile).expect_partial()
 
         predict = model.predict(finalImage)

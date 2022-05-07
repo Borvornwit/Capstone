@@ -51,7 +51,7 @@ class faceAntiSpoof2D:
             x1,y1,x2,y2,_ = faceBox.astype(np.int32)
             crop_Image = crop_Image[y1:y2, x1:x2]
 
-        return crop_Image
+        return crop_Image, faceBox
 
     def estimate(self, croppedImage):
         croppedImage = croppedImage/255
