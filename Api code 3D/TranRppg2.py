@@ -28,15 +28,32 @@ class LinearTrans(nn.Module):
         # print(x.shape)
         return x
 
+# class PositionEncoderRppg(nn.Module):
+#     def __init__(self, in_channels: int = 3, emb_size: int = 768, img_height: int = 63, img_width: int = 300,kernel_height:int = 3, kernel_width: int = 30, stride_h:int = 1, stride_w:int=15):
+#       super().__init__()
+#       self.cls_token = nn.Parameter(torch.randn(1,1, emb_size))
+#     #   print(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1)
+#       self.positions = nn.Parameter(torch.randn(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1, emb_size))
+
+#     def forward(self, x: Tensor) -> Tensor:
+#         b, _, _ = x.shape
+#         cls_tokens = repeat(self.cls_token, '() n e -> b n e', b=b)
+#         # prepend the cls token to the input
+#         x = torch.cat([cls_tokens, x], dim=1)
+#         # add position embedding
+#         x += self.positions
+#         return x
+
 class PositionEncoderRppg(nn.Module):
     def __init__(self, in_channels: int = 3, emb_size: int = 768, img_height: int = 63, img_width: int = 300,kernel_height:int = 3, kernel_width: int = 30, stride_h:int = 1, stride_w:int=15):
       super().__init__()
       self.cls_token = nn.Parameter(torch.randn(1,1, emb_size))
+      num_patch = ((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w)
     #   print(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1)
-      self.positions = nn.Parameter(torch.randn(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1, emb_size))
+      self.positions = nn.Parameter(torch.randn(num_patch + 1, emb_size))
 
     def forward(self, x: Tensor) -> Tensor:
-        b, _, _ = x.shape
+        b, n, _ = x.shape
         cls_tokens = repeat(self.cls_token, '() n e -> b n e', b=b)
         # prepend the cls token to the input
         x = torch.cat([cls_tokens, x], dim=1)
@@ -68,7 +85,7 @@ class ResidualAdd(nn.Module):
         return x
 
 class FeedForwardBlock(nn.Sequential):
-    def __init__(self, emb_size: int, expansion: int = 4, drop_p: float = 0.):
+    def __init__(self, emb_size: int, expansion: int = 2, drop_p: float = 0.):
         super().__init__(
             nn.Linear(emb_size, expansion * emb_size),
             nn.GELU(),
@@ -110,7 +127,7 @@ class TransformerEncoderBlock(nn.Sequential):
                  emb_size: int = 768,
                  num_head: int = 8,
                  drop_p: float = 0.,
-                 forward_expansion: int = 4,
+                 forward_expansion: int = 2,
                  forward_drop_p: float = 0.,
                  ** kwargs):
         super().__init__(
@@ -131,11 +148,17 @@ class TransformerEncoder(nn.Sequential):
     def __init__(self, depth: int = 12, **kwargs):
         super().__init__(*[TransformerEncoderBlock(**kwargs) for _ in range(depth)])
 
+# class ClassificationHeadRppg(nn.Sequential):
+#     def __init__(self, emb_size: int = 768, n_classes: int = 1000):
+#         super().__init__(
+#             nn.LayerNorm(emb_size),
+#             nn.Linear(emb_size, n_classes))
+
 class ClassificationHeadRppg(nn.Sequential):
     def __init__(self, emb_size: int = 768, n_classes: int = 1000):
         super().__init__(
-            nn.LayerNorm(emb_size),
-            nn.Linear(emb_size, n_classes))
+            nn.LayerNorm(emb_size), 
+            nn.Linear(emb_size,n_classes))
 
 class ViTRppg(nn.Module):
     def __init__(self,
@@ -300,6 +323,7 @@ class TransRppg2(nn.Module):
                stride_w: int = 15,
                 depth: int = 6,
                 n_classes: int = 2,
+                mlp_mul: int = 2,
                 **kwargs):
         super().__init__()
         # self.patch_embedded_face = PatchEmbeddingTrans(in_channels,emb_size, img_height, img_width, kernel_height, kernel_width, stride_x, stride_y)
@@ -309,9 +333,9 @@ class TransRppg2(nn.Module):
         self.pos_bg = PositionEncoderRppg(in_channels,emb_size, 15, img_width, kernel_height, kernel_width, stride_h, stride_w)
         self.pos_final = PositionEncoderFinalRppg(in_channels,emb_size)
         # self.transformer_6 = TransformerEncoder(depth, emb_size=emb_size,num_head = 3, **kwargs)
-        self.transformer_6 = Transformer(emb_size,depth,heads = 3,dim_head=emb_size,mlp_dim=emb_size)
+        self.transformer_6 = Transformer(emb_size,depth,heads = 3,dim_head=emb_size,mlp_dim=emb_size*mlp_mul)
         # self.transformer_1 = TransformerEncoder(1, emb_size=emb_size,num_head = 3, **kwargs)
-        self.transformer_1 = Transformer(emb_size,1,heads = 3,dim_head=emb_size,mlp_dim=emb_size)
+        self.transformer_1 = Transformer(emb_size,1,heads = 3,dim_head=emb_size,mlp_dim=emb_size*mlp_mul)
         self.to_latent1 = nn.Identity()
         self.to_latent2 = nn.Identity()
         self.classificationFace = ClassificationHeadRppg(emb_size, n_classes)

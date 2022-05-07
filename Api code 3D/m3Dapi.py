@@ -26,12 +26,13 @@ from TranRppg2 import TransRppg,ViTRppg,TransRppg2
 from mstMap_gen import MSTmap_generator, get_face_contours, get_bg_contours, generateSignalMap, norm_mst
 
 class FAS3D:
-    def __init__(self):
+    def __init__(self,modelFile):
         self.label = ['attack','real']
         ## Load model
         # self.model = []
         self.model = TransRppg2(emb_size=96,mlp_mul=2)
-        load_path = '3D model\Tranrppg10sec new model_drop_5.pt'
+        # load_path = '3D model\Tranrppg10sec new model_drop_5.pt'
+        load_path = modelFile
 
         self.model.load_state_dict(torch.load(load_path))
         self.model.eval()
@@ -93,7 +94,7 @@ class FAS3D:
         self.mstmap_whole_bg[cam_id] = np.zeros((2**self.region_num_bg-1,self.time_frame,self.color_channel))
         return
 
-    def predict(self,final_mstmap_face, final_mstmap_bg)
+    def predict(self,final_mstmap_face, final_mstmap_bg):
         result = self.model(final_mstmap_face,final_mstmap_bg)
         predict = np.argmax(result)
         if predict == 0:
