@@ -98,7 +98,7 @@ while genre == "Video" and video.isOpened():
 
         updateResult()
 
-        alignedImage, faceBox = _faceAntiSpoof2D.cropImage(frame)
+        alignedImage, faceBoxes = _faceAntiSpoof2D.cropImage(frame)
 
         # if face not detected
         if len(faceBoxes) == 0:
