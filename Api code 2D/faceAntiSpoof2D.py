@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import sys, os
 from depthEstimationModel_2d import DepthEstimationModel
 
@@ -12,15 +11,17 @@ class faceAntiSpoof2D:
         self.modelFile = modelFile
         self._faceDetectorAndAlignment = faceDetectorAndAlignment(os.path.dirname(os.path.realpath(__file__))
                                                            + '/faceDetetorAndAlignment/models/faceDetectorV2.onnx', processScale=0.20)
+
+        self.model = DepthEstimationModel()
+        self.model.compile()
+        self.model.load_weights(self.modelFile).expect_partial()
+
         self.threshold = 0.8
 
     def detect(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        croppedImage = self.cropImage(image)
-
-        if croppedImage.shape[0] == 0 or croppedImage.shape[1] == 0:
-            return False
+        croppedImage, faceBox = self.cropImage(image)
 
         predict = self.estimate(croppedImage)
 
@@ -30,9 +31,6 @@ class faceAntiSpoof2D:
 
     def detectAfterPreprocess(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        if image.shape[0] == 0 or image.shape[1] == 0:
-            return False
 
         predict = self.estimate(image)
 
@@ -57,9 +55,5 @@ class faceAntiSpoof2D:
         croppedImage = croppedImage/255
         finalImage = croppedImage.reshape(1, croppedImage.shape[0], croppedImage.shape[1], 3)
 
-        model = DepthEstimationModel()
-        model.compile()
-        model.load_weights(self.modelFile).expect_partial()
-
-        predict = model.predict(finalImage)
+        predict = self.model.predict(finalImage)
         return predict
