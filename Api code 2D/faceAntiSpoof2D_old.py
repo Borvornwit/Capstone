@@ -22,7 +22,7 @@ class faceAntiSpoof2D_old:
     def detect(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        croppedImage, faceBox = self.cropImage(image)
+        croppedImage, faceBoxes = self.cropImage(image)
 
         predict = self.estimate(croppedImage)
 
@@ -50,7 +50,7 @@ class faceAntiSpoof2D_old:
             x1,y1,x2,y2,_ = faceBox.astype(np.int32)
             crop_Image = crop_Image[y1:y2, x1:x2]
 
-        return crop_Image, faceBox
+        return crop_Image, faceBoxes
 
     def estimate(self, croppedImage):
         croppedImage = croppedImage/255

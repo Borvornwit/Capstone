@@ -75,7 +75,11 @@ while genre == "Webcam" and camera.isOpened():
 
         updateResult()
 
-        alignedImage, faceBox = _faceAntiSpoof2D.cropImage(frame)
+        alignedImage, faceBoxes = _faceAntiSpoof2D.cropImage(frame)
+
+        # if face not detected
+        if len(faceBoxes) == 0:
+            continue
 
         if not thread_2d.is_alive():
             thread_2d = threading.Thread(target=predict2d, args=(alignedImage,))
@@ -95,6 +99,10 @@ while genre == "Video" and video.isOpened():
         updateResult()
 
         alignedImage, faceBox = _faceAntiSpoof2D.cropImage(frame)
+
+        # if face not detected
+        if len(faceBoxes) == 0:
+            continue
 
         if not thread_2d.is_alive():
             thread_2d = threading.Thread(target=predict2d, args=(alignedImage,))

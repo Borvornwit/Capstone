@@ -21,7 +21,10 @@ class faceAntiSpoof2D:
     def detect(self, image):
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        croppedImage, faceBox = self.cropImage(image)
+        croppedImage, faceBoxes = self.cropImage(image)
+        
+        if len(faceBoxes) == 0:
+            return False, 0
 
         predict = self.estimate(croppedImage)
 
@@ -44,12 +47,14 @@ class faceAntiSpoof2D:
 
         faceBoxes, _, _ = self._faceDetectorAndAlignment.detect(image)
         crop_Image = image.copy()
+        
+        
 
         for faceBox in faceBoxes:
             x1,y1,x2,y2,_ = faceBox.astype(np.int32)
             crop_Image = crop_Image[y1:y2, x1:x2]
 
-        return crop_Image, faceBox
+        return crop_Image, faceBoxes
 
     def estimate(self, croppedImage):
         croppedImage = croppedImage/255
