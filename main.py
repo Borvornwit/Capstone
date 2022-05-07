@@ -34,9 +34,20 @@ with col1:
 with col2:
     FRAME_WINDOW = st.image([])
 
+def strResult(result):
+    if result is None:
+        result_str = 'Waiting...'
+    elif result:
+        result_str = 'Live'
+    else:
+        result_str = 'Spoof'
+    return result_str
+
 def updateResult():
-    result_2d_str = "Live" if result_2d else "Spoof"
-    result_3d_str = "Live" if result_3d else "Spoof"
+    # result_2d_str = "Live" if result_2d else "Spoof"
+    # result_3d_str = "Live" if result_3d else "Spoof"
+    result_2d_str = strResult(result_2d)
+    result_3d_str = strResult(result_3d)
 
     with placeholder.container():
         col1, col2, col3 = st.columns(3)
@@ -47,10 +58,12 @@ def predict2d(frame):
     global result_2d, score_2d
     result_2d, score_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
-result_2d = False
+
+result_2d = None
 score_2d = 0.0
-result_3d = False
+result_3d = None
 thread_2d = threading.Thread(target=predict2d)
+thread_3d = None
 
 placeholder = st.empty()
 
