@@ -44,29 +44,13 @@ class LinearTrans(nn.Module):
 #         x += self.positions
 #         return x
 
-# class PositionEncoderRppg(nn.Module):
-#     def __init__(self, in_channels: int = 3, emb_size: int = 768, img_height: int = 63, img_width: int = 300,kernel_height:int = 3, kernel_width: int = 30, stride_h:int = 1, stride_w:int=15):
-#       super().__init__()
-#       self.cls_token = nn.Parameter(torch.randn(1,1, emb_size))
-#       num_patch = ((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w)
-#     #   print(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1)
-#       self.positions = nn.Parameter(torch.randn(num_patch + 1, emb_size))
-
-#     def forward(self, x: Tensor) -> Tensor:
-#         b, n, _ = x.shape
-#         cls_tokens = repeat(self.cls_token, '() n e -> b n e', b=b)
-#         # prepend the cls token to the input
-#         x = torch.cat([cls_tokens, x], dim=1)
-#         # add position embedding
-#         x += self.positions
-#         return x
-
 class PositionEncoderRppg(nn.Module):
     def __init__(self, in_channels: int = 3, emb_size: int = 768, img_height: int = 63, img_width: int = 300,kernel_height:int = 3, kernel_width: int = 30, stride_h:int = 1, stride_w:int=15):
       super().__init__()
       self.cls_token = nn.Parameter(torch.randn(1,1, emb_size))
       num_patch = ((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w)
-      self.positions = nn.Parameter(torch.randn(1,num_patch + 1, emb_size))
+    #   print(((img_height-kernel_height+stride_h)//stride_h)*((img_width-kernel_width+stride_w)//stride_w) + 1)
+      self.positions = nn.Parameter(torch.randn(num_patch + 1, emb_size))
 
     def forward(self, x: Tensor) -> Tensor:
         b, n, _ = x.shape
@@ -74,7 +58,7 @@ class PositionEncoderRppg(nn.Module):
         # prepend the cls token to the input
         x = torch.cat([cls_tokens, x], dim=1)
         # add position embedding
-        x += self.positions[:, :(n + 1)]
+        x += self.positions
         return x
 
 class PositionEncoderFinalRppg(nn.Module):
