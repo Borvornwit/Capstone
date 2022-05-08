@@ -9,10 +9,10 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 2D')
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 3D')
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/faceDetetorAndAlignment')
 from faceAntiSpoof2D import faceAntiSpoof2D
+#from faceAntiSpoof2D_old import faceAntiSpoof2D_old
 from m3Dapi import FAS3D
 from faceDetectorAndAlignment import faceDetectorAndAlignment
 from faceLandmark import faceLandmark
-#from faceAntiSpoof2D_old import faceAntiSpoof2D_old
 
 _faceAntiSpoof2D = faceAntiSpoof2D(modelFile = 'Api code 2D/model/best')
 #_faceAntiSpoof2D = faceAntiSpoof2D_old(modelFile = 'Api code 2D/model/old')
@@ -73,7 +73,6 @@ def predict2d(frame):
     result_2d, score_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
 def predict3d(final_mstmap_face,final_mstmap_bg):
-    # global result_3d, frame_count
     global result_3d, frame_count
     # print(frame_count,result_3d)
     if final_mstmap_face is None: 
@@ -85,6 +84,10 @@ def predict3d(final_mstmap_face,final_mstmap_bg):
 def faceAntiSpoof(frame):
     global thread_preprocess, thread_2d, thread_3d
     global frame_count, faceLandmarks
+
+    # resize frame
+    frame = cv2.resize(frame, (0,0), fx = 2, fy = 2)
+
     # preprocess
     if not thread_preprocess.is_alive():
         thread_preprocess = threading.Thread(target=preprocess, args=(frame,))

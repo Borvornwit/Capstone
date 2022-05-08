@@ -40,8 +40,8 @@ class faceAntiSpoof2D_old:
         return score >= self.threshold, score
 
     def cropImage(self, image):
-        while image.shape[0] < 500 or image.shape[1] < 500:
-            image = cv2.resize(image, (0,0), fx = 2, fy = 2)
+        #while image.shape[0] < 500 or image.shape[1] < 500:
+        #    image = cv2.resize(image, (0,0), fx = 2, fy = 2)
 
         faceBoxes, _, _ = self._faceDetectorAndAlignment.detect(image)
         crop_Image = image.copy()
