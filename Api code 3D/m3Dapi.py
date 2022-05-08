@@ -70,13 +70,22 @@ class FAS3D:
             self.reset_mst(cam_id)
         face_contours = get_face_contours(face_landmark)
         bg_contours = get_bg_contours(*bg_landmark)
+        # print()
         if frame_count>299:
             self.mstmap_whole_face[cam_id] = np.roll(self.mstmap_whole_face[cam_id], (0, -1), axis=(0, 1))
             self.mstmap_whole_bg[cam_id] = np.roll(self.mstmap_whole_bg[cam_id], (0, -1), axis=(0, 1))
         self.mstmap_whole_face[cam_id] = generateSignalMap(self.mstmap_whole_face[cam_id],frame,min(frame_count,299),face_contours)
         self.mstmap_whole_bg[cam_id] = generateSignalMap(self.mstmap_whole_bg[cam_id],frame,min(frame_count,299),bg_contours)
+        # if np.isnan(np.sum(self.mstmap_whole_bg[cam_id])):
+        #     if frame_count == 0:
+        #         print(bg_landmark)
+        #         print(bg_contours)
+        #         print(self.mstmap_whole_bg[cam_id])
+        #     print(frame_count)
         if frame_count >= 299:
             ### Normalise MSTmap
+            # print(self.mstmap_whole_face[cam_id].shape)
+            # print(self.mstmap_whole_bg[cam_id].shape)
             final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
             final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
             ### classify Target
@@ -87,7 +96,7 @@ class FAS3D:
             # else:
             #     return 'real'
             return final_mstmap_face, final_mstmap_bg
-        return None
+        return None,None
 
     def reset_mst(self,cam_id):
         self.mstmap_whole_face[cam_id] = np.zeros((2**self.region_num_face-1,self.time_frame,self.color_channel))

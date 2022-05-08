@@ -17,7 +17,7 @@ from faceLandmark import faceLandmark
 _faceAntiSpoof2D = faceAntiSpoof2D(modelFile = 'Api code 2D/model/best')
 #_faceAntiSpoof2D = faceAntiSpoof2D_old(modelFile = 'Api code 2D/model/old')
 _faceAntiSpoof3D = FAS3D(modelFile='Api code 3D/Tranrppg10sec new model_drop_5.pt')
-_faceLandmarks = faceLandmark('faceDetetorAndAlignment/faceLandmark.py')
+_faceLandmarks = faceLandmark('faceDetetorAndAlignment/models/faceLandmark64Light.onnx')
 
 st.title("Face-Anti spoofing - DEMO")
 
@@ -66,22 +66,25 @@ def preprocess(frame):
     global alignedImage, faceBoxes, faceLandmarks
     alignedImage, faceBoxes = _faceAntiSpoof2D.cropImage(frame)
     faceLandmarks = _faceLandmarks.extractLandmark(frame, faceBoxes)
+    # print('preprocess',faceLandmarks)
 
 def predict2d(frame):
     global result_2d, score_2d
     result_2d, score_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
 def predict3d(final_mstmap_face,final_mstmap_bg):
-    global result_3d
+    # global result_3d, frame_count
+    global result_3d, frame_count
+    # print(frame_count,result_3d)
     if final_mstmap_face is None: 
         result_3d = None
         return
+    # print('final_mstmap_face',final_mstmap_face)
     result_3d = _faceAntiSpoof3D.predict(final_mstmap_face,final_mstmap_bg)
 
 def faceAntiSpoof(frame):
     global thread_preprocess, thread_2d, thread_3d
-    global frame_count
-
+    global frame_count, faceLandmarks
     # preprocess
     if not thread_preprocess.is_alive():
         thread_preprocess = threading.Thread(target=preprocess, args=(frame,))
@@ -98,13 +101,17 @@ def faceAntiSpoof(frame):
         thread_2d.start()
 
     # 3DFAS
+    if faceLandmarks is None:
+        return
+    # print('FAS',faceLandmarks)
+    h , w,_ = frame.shape
     x1,y1,x2,y2,_ = faceBoxes[0].astype(np.int32)
     bgLandmarks = [x1,y1,x2,y2,w,h]
-    final_mstmap_face,final_mstmap_bg = _faceAntiSpoof3D.genFromSeq(frame,facelandmarks,bgLandmarks,frame_count,cam_id=0) 
+    final_mstmap_face,final_mstmap_bg = _faceAntiSpoof3D.genFromSeq(frame,faceLandmarks,bgLandmarks,frame_count,cam_id=0) 
     frame_count += 1
 
     if not thread_3d.is_alive():
-        thread_3d = threading.Thread(target=predict3d, args=(frame,final_mstmap_face,final_mstmap_bg,))
+        thread_3d = threading.Thread(target=predict3d, args=(final_mstmap_face,final_mstmap_bg,))
         thread_3d.start()
 
 thread_preprocess = threading.Thread(target=preprocess)
@@ -127,7 +134,6 @@ while genre == "Webcam" and camera.isOpened():
     _, frame = camera.read()
     if frame is not None:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        h , w,_ = frame.shape
         FRAME_WINDOW.image(frame)
 
         faceAntiSpoof(frame)
