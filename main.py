@@ -4,6 +4,7 @@ import tempfile
 import sys, os
 import threading
 import numpy as np
+import torch
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 2D')
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 3D')
@@ -74,11 +75,11 @@ def predict2d(frame):
 
 def predict3d(final_mstmap_face,final_mstmap_bg):
     global result_3d, frame_count
-    # print(frame_count,result_3d)
+    print(frame_count,result_3d)
     if final_mstmap_face is None: 
         result_3d = None
         return
-    # print('final_mstmap_face',final_mstmap_face)
+    print('final_mstmap_face',final_mstmap_face.shape)
     result_3d = _faceAntiSpoof3D.predict(final_mstmap_face,final_mstmap_bg)
 
 def faceAntiSpoof(frame):

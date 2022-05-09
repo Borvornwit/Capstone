@@ -23,7 +23,7 @@ class LinearTrans(nn.Module):
 
 
     def forward(self, x: Tensor) -> Tensor:
-        # print(x.shape)
+        print(x.shape)
         x = self.projection(x)
         # print(x.shape)
         return x

@@ -136,10 +136,6 @@ def norm_mst(mstmap_whole,color_channel):
       for c in range(color_channel):
           temp = mstmap_whole[idx,:,c]
           temp =  moving_average(temp,3)
-          if len(temp[temp>=0.8*np.mean(temp)]) == 0:
-            print(temp)
-            print(idx)
-            print(c)
           temp[temp<0.8*np.mean(temp)] = temp[temp>=0.8*np.mean(temp)][0]
           final_map[idx,:,c] = (temp - np.amin(temp)) / (np.amax(temp) - np.amin(temp)) * 255
   return final_map

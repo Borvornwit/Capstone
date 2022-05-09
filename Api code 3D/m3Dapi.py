@@ -28,14 +28,17 @@ from mstMap_gen import MSTmap_generator, get_face_contours, get_bg_contours, gen
 class FAS3D:
     def __init__(self,modelFile):
         self.label = ['attack','real']
+        self.first = True
         ## Load model
         # self.model = []
         self.model = TransRppg2(emb_size=96,mlp_mul=2)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # load_path = '3D model\Tranrppg10sec new model_drop_5.pt'
         load_path = modelFile
 
         self.model.load_state_dict(torch.load(load_path))
         self.model.eval()
+        self.model.to(self.device)
 
         self.color_channel = 3
         self.time_frame = 300
@@ -88,6 +91,10 @@ class FAS3D:
             # print(self.mstmap_whole_bg[cam_id].shape)
             final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
             final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
+            if self.first:
+                self.first = False
+                filename = 'savedImage.bmp'
+                cv2.imwrite(filename,final_mstmap_face)
             ### classify Target
             # result = self.model(final_mstmap_face,final_mstmap_bg)
             # predict = np.argmax(result)
@@ -104,9 +111,21 @@ class FAS3D:
         return
 
     def predict(self,final_mstmap_face, final_mstmap_bg):
-        result = self.model(final_mstmap_face,final_mstmap_bg)
+        final_mstmap_face = np.transpose(final_mstmap_face,(2,0,1))
+        final_mstmap_bg = np.transpose(final_mstmap_bg,(2,0,1))
+        final_mstmap_face = torch.tensor(final_mstmap_face,dtype=torch.float)
+        final_mstmap_bg = torch.tensor(final_mstmap_bg,dtype=torch.float)
+        final_mstmap_face = torch.unsqueeze(final_mstmap_face, 0)
+        final_mstmap_bg = torch.unsqueeze(final_mstmap_bg, 0)
+        final_mstmap_face = final_mstmap_face.to(self.device)
+        final_mstmap_bg = final_mstmap_bg.to(self.device)
+        # print(final_mstmap_face.shape)
+        # print(final_mstmap_bg.shape)
+        # print(type(final_mstmap_face))
+        result = self.model(final_mstmap_face,final_mstmap_bg)[0].cpu().detach().numpy()
+        print(result)
         predict = np.argmax(result)
         if predict == 0:
-            return 'attack'
+            return False
         else:
-            return 'real'
+            return True
