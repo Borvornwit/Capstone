@@ -151,8 +151,8 @@ camera.release()
 while genre == "Video" and video.isOpened():
     _, frame = video.read()
     if frame is not None:
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        FRAME_WINDOW.image(frame)
+        c_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        FRAME_WINDOW.image(c_frame)
 
         faceAntiSpoof(frame)
         updateResult()

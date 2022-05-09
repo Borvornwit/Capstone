@@ -25,6 +25,8 @@ from os.path import isfile, join
 from TranRppg2 import TransRppg,ViTRppg,TransRppg2
 from mstMap_gen import MSTmap_generator, get_face_contours, get_bg_contours, generateSignalMap, norm_mst
 
+from PIL import Image
+
 class FAS3D:
     def __init__(self,modelFile):
         self.label = ['attack','real']
@@ -95,6 +97,8 @@ class FAS3D:
                 self.first = False
                 filename = 'savedImage.bmp'
                 cv2.imwrite(filename,final_mstmap_face)
+                filename = 'savedImageBg.bmp'
+                cv2.imwrite(filename,final_mstmap_bg)
             ### classify Target
             # result = self.model(final_mstmap_face,final_mstmap_bg)
             # predict = np.argmax(result)
@@ -111,12 +115,14 @@ class FAS3D:
         return
 
     def predict(self,final_mstmap_face, final_mstmap_bg):
-        final_mstmap_face = np.transpose(final_mstmap_face,(2,0,1))
-        final_mstmap_bg = np.transpose(final_mstmap_bg,(2,0,1))
-        final_mstmap_face = torch.tensor(final_mstmap_face,dtype=torch.float)
-        final_mstmap_bg = torch.tensor(final_mstmap_bg,dtype=torch.float)
-        final_mstmap_face = torch.unsqueeze(final_mstmap_face, 0)
-        final_mstmap_bg = torch.unsqueeze(final_mstmap_bg, 0)
+        #print(final_mstmap_face[0,0])
+        final_mstmap_face = cv2.cvtColor(np.uint8(final_mstmap_face),cv2.COLOR_BGR2RGB)
+        final_mstmap_bg = cv2.cvtColor(np.uint8(final_mstmap_bg),cv2.COLOR_BGR2RGB)
+        final_mstmap_face = Image.fromarray(final_mstmap_face)
+        final_mstmap_bg = Image.fromarray(final_mstmap_bg)
+        t = transforms.ToTensor()
+        final_mstmap_face = t(final_mstmap_face).unsqueeze(0)
+        final_mstmap_bg = t(final_mstmap_bg).unsqueeze(0)
         final_mstmap_face = final_mstmap_face.to(self.device)
         final_mstmap_bg = final_mstmap_bg.to(self.device)
         # print(final_mstmap_face.shape)
