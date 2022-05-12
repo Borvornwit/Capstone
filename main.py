@@ -24,6 +24,7 @@ st.title("Face-Anti spoofing - DEMO")
 
 # set Webcam
 camera = cv2.VideoCapture(0)
+# camera = cv2.VideoCapture(-1, cv2.CAP_DSHOW)
 
 # Set Video
 video_upload = st.file_uploader("Choose a file")
