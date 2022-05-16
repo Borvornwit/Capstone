@@ -108,7 +108,7 @@ def faceAntiSpoof(frame,cam_id):
         thread_2d.start()
 
     # 3DFAS
-    if faceLandmarks is None:
+    if len(faceBoxes) == 0:
         return
     # print('FAS',faceLandmarks)
     frame = cv2.resize(frame, (0,0), fx = 0.5, fy = 0.5)
@@ -130,7 +130,7 @@ thread_3d = threading.Thread(target=predict3d)
 
 alignedImage = None
 faceBoxes = []
-faceLandmarks = None
+faceLandmarks = []
 
 result_2d = None
 score_2d = 0.0
@@ -140,24 +140,37 @@ frame_count = 0
 
 placeholder = st.empty()
 
-while genre == "Webcam" and camera.isOpened():
-    _, frame = camera.read()
-    if frame is not None:
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        FRAME_WINDOW.image(frame)
+# while genre == "Webcam" and camera.isOpened():
+#     _, frame = camera.read()
+#     if frame is not None:
+#         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#         FRAME_WINDOW.image(frame)
 
-        faceAntiSpoof(frame,0)
-        updateResult()
-    else:
-        break
+#         faceAntiSpoof(frame,0)
+#         updateResult()
+#     else:
+#         break
 
-camera.release()
+# camera.release()
 
 
-while genre == "Video" and video.isOpened():
-    _, frame = video.read()
+while (genre == "Video" and video.isOpened()) or (genre == "Webcam" and camera.isOpened()):
+    if genre == "Video":
+        _, frame = video.read()
+    elif genre == "Webcam":
+        _, frame = camera.read()
     if frame is not None:
         c_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if len(faceBoxes) > 0:
+            for faceBox in faceBoxes/2:
+                x1,y1,x2,y2,_ = faceBox.astype(np.int32)
+                cv2.rectangle(c_frame, (x1,y1), (x2,y2), (0,255,0),3)
+
+        if len(faceLandmarks) > 0:
+            for currentFaceLandmark in faceLandmarks:
+                for pts in currentFaceLandmark/2:
+                    x, y = pts.astype(np.int32)
+                    cv2.circle(c_frame, (x, y), 2, (0,255,0), -1)
         FRAME_WINDOW.image(c_frame)
 
         faceAntiSpoof(frame,0)
@@ -166,3 +179,4 @@ while genre == "Video" and video.isOpened():
         break
 
 video.release()
+camera.release()
