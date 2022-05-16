@@ -5,6 +5,7 @@ import sys, os
 import threading
 import numpy as np
 import torch
+import time
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 2D')
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/Api code 3D')
@@ -109,10 +110,13 @@ def faceAntiSpoof(frame):
     if faceLandmarks is None:
         return
     # print('FAS',faceLandmarks)
+    frame = cv2.resize(frame, (0,0), fx = 0.5, fy = 0.5)
     h , w,_ = frame.shape
     x1,y1,x2,y2,_ = faceBoxes[0].astype(np.int32)
-    bgLandmarks = [x1,y1,x2,y2,w,h]
-    final_mstmap_face,final_mstmap_bg = _faceAntiSpoof3D.genFromSeq(frame,faceLandmarks,bgLandmarks,frame_count,cam_id=0) 
+    bgLandmarks = [x1//2,y1//2,x2//2,y2//2,w,h]
+    start = time.time()
+    final_mstmap_face,final_mstmap_bg = _faceAntiSpoof3D.genFromSeq(frame,faceLandmarks//2,bgLandmarks,frame_count,cam_id=0) 
+    print(time.time()-start)
     frame_count += 1
 
     if not thread_3d.is_alive():
