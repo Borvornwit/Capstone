@@ -75,16 +75,17 @@ def predict2d(frame):
     global result_2d, score_2d
     result_2d, score_2d = _faceAntiSpoof2D.detectAfterPreprocess(frame)
 
-def predict3d(final_mstmap_face,final_mstmap_bg):
+def predict3d(isready_3d,cam_id):
     global result_3d, frame_count
     print(frame_count,result_3d)
-    if final_mstmap_face is None: 
+    if isready_3d: 
+        result_3d = _faceAntiSpoof3D.predict(cam_id)
+        return
+    else:
         result_3d = None
         return
-    print('final_mstmap_face',final_mstmap_face.shape)
-    result_3d = _faceAntiSpoof3D.predict(final_mstmap_face,final_mstmap_bg)
 
-def faceAntiSpoof(frame):
+def faceAntiSpoof(frame,cam_id):
     global thread_preprocess, thread_2d, thread_3d
     global frame_count, faceLandmarks
 
@@ -115,12 +116,12 @@ def faceAntiSpoof(frame):
     x1,y1,x2,y2,_ = faceBoxes[0].astype(np.int32)
     bgLandmarks = [x1//2,y1//2,x2//2,y2//2,w,h]
     start = time.time()
-    final_mstmap_face,final_mstmap_bg = _faceAntiSpoof3D.genFromSeq(frame,faceLandmarks//2,bgLandmarks,frame_count,cam_id=0) 
+    isready_3d = _faceAntiSpoof3D.genFromSeq(frame,faceLandmarks//2,bgLandmarks,frame_count,cam_id=0) 
     print(time.time()-start)
     frame_count += 1
 
     if not thread_3d.is_alive():
-        thread_3d = threading.Thread(target=predict3d, args=(final_mstmap_face,final_mstmap_bg,))
+        thread_3d = threading.Thread(target=predict3d, args=(isready_3d,cam_id,))
         thread_3d.start()
 
 thread_preprocess = threading.Thread(target=preprocess)
@@ -145,7 +146,7 @@ while genre == "Webcam" and camera.isOpened():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         FRAME_WINDOW.image(frame)
 
-        faceAntiSpoof(frame)
+        faceAntiSpoof(frame,0)
         updateResult()
     else:
         break
@@ -159,7 +160,7 @@ while genre == "Video" and video.isOpened():
         c_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         FRAME_WINDOW.image(c_frame)
 
-        faceAntiSpoof(frame)
+        faceAntiSpoof(frame,0)
         updateResult()
     else:
         break

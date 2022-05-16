@@ -88,33 +88,36 @@ class FAS3D:
         #         print(self.mstmap_whole_bg[cam_id])
         #     print(frame_count)
         if frame_count >= 299:
+            return True
+        return False
             ### Normalise MSTmap
             # print(self.mstmap_whole_face[cam_id].shape)
             # print(self.mstmap_whole_bg[cam_id].shape)
-            final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
-            final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
-            if self.first:
-                self.first = False
-                filename = 'savedImage.bmp'
-                cv2.imwrite(filename,final_mstmap_face)
-                filename = 'savedImageBg.bmp'
-                cv2.imwrite(filename,final_mstmap_bg)
-            ### classify Target
-            # result = self.model(final_mstmap_face,final_mstmap_bg)
-            # predict = np.argmax(result)
-            # if predict == 0:
-            #     return 'attack'
-            # else:
-            #     return 'real'
-            return final_mstmap_face, final_mstmap_bg
-        return None,None
+            # final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
+            # final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
+            # if self.first:
+            #     self.first = False
+            #     filename = 'savedImage.bmp'
+            #     cv2.imwrite(filename,final_mstmap_face)
+            #     filename = 'savedImageBg.bmp'
+            #     cv2.imwrite(filename,final_mstmap_bg)
+            # ### classify Target
+            # # result = self.model(final_mstmap_face,final_mstmap_bg)
+            # # predict = np.argmax(result)
+            # # if predict == 0:
+            # #     return 'attack'
+            # # else:
+            # #     return 'real'
+            # return final_mstmap_face, final_mstmap_bg
 
     def reset_mst(self,cam_id):
         self.mstmap_whole_face[cam_id] = np.zeros((2**self.region_num_face-1,self.time_frame,self.color_channel))
         self.mstmap_whole_bg[cam_id] = np.zeros((2**self.region_num_bg-1,self.time_frame,self.color_channel))
         return
 
-    def predict(self,final_mstmap_face, final_mstmap_bg):
+    def predict(self,cam_id):
+        final_mstmap_face = norm_mst(self.mstmap_whole_face[cam_id],self.color_channel)
+        final_mstmap_bg = norm_mst(self.mstmap_whole_bg[cam_id],self.color_channel)
         #print(final_mstmap_face[0,0])
         final_mstmap_face = cv2.cvtColor(np.uint8(final_mstmap_face),cv2.COLOR_BGR2RGB)
         final_mstmap_bg = cv2.cvtColor(np.uint8(final_mstmap_bg),cv2.COLOR_BGR2RGB)
